@@ -18,14 +18,13 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   shippingAddress: {
-    address: { type: String, required: true },
-    city: { type: String, required: true },
-    postalCode: { type: String, required: true },
-    country: { type: String, required: true }
+    address: { type: String},
+    city: { type: String },
+    country: { type: String}
   },
-  totalPrice: { type: Number, required: true },
+  totalPrice: { type: Number},
   shippingFee: { type: Number, default: 0 },
-  orderTotal: { type: Number, required: true },
+  orderTotal: { type: Number},
   status: {
     type: String,
     enum: ["Pending", "Shipped", "Delivered", "Cancelled"],

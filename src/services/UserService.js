@@ -105,19 +105,16 @@ const updateUser = (id, data) => {
           message: "User not found"
         });
       }
-
       const updatedUser = await User.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true
       });
-
       if (!updatedUser) {
         return resolve({
           status: "Error",
           message: "Update failed"
         });
       }
-
       return resolve({
         status: "Success",
         message: "User updated successfully",

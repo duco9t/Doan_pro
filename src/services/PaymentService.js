@@ -4,20 +4,15 @@ const config = require('../config/default.json'); // Đọc các thông số t�
 
 const createVNPayPaymentUrl = async (orderId, returnUrl) => {
   const { VNP_TMN_CODE, VNP_HASH_SECRET, VNP_URL, VNP_RETURN_URL } = process.env;
-
-  // Lấy giá trị đơn hàng từ cơ sở dữ liệu
   const order = await Order.findById(orderId);
   if (!order) {
       throw new Error(`Đơn hàng với ID ${orderId} không tồn tại`);
   }
-  
   const amount = order.orderTotal; 
   console.log("amout", amount)
-
   if (!VNP_HASH_SECRET) {
       throw new Error('VNP_HASH_SECRET không được định nghĩa');
   }
-
   const date = new Date();
   const vnp_CreateDate = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
 

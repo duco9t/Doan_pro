@@ -1,25 +1,11 @@
 const OrderService = require("../services/OrderService");
 const Order = require("../models/OrderModel");
 
-const createOrderController = async (req, res) => {
+const createOrder = async (req, res) => {
   try {
-    const { userId, cartId, shippingAddress, productIds, name, phone, email } =
-      req.body;
-
-    const selectedProductIds = Array.isArray(productIds)
-      ? productIds
-      : [productIds];
-
-    const newOrder = await OrderService.createOrder(
-      userId,
-      cartId,
-      shippingAddress,
-      selectedProductIds,
-      name,
-      phone,
-      email
-    );
-
+    const { userId, cartId, shippingAddress, productIds, name, phone, email } = req.body;
+    const selectedProductIds = Array.isArray(productIds) ? productIds: [productIds];
+    const newOrder = await OrderService.createOrder(userId,cartId,shippingAddress,selectedProductIds,name,phone,email);
     res.status(200).json({ status: "OK", data: newOrder });
   } catch (error) {
     console.error("Lỗi trong createOrder controller:", error);
@@ -29,38 +15,38 @@ const createOrderController = async (req, res) => {
     });
   }
 };
-const getAllOrdersByUserController = async (req, res) => {
-  const { userId } = req.params;
+const getAllOrdersByUser = async (req, res) => {
   try {
-    const orders = await Order.find({ userId }).populate("products.productId");
+    const { userId } = req.params;
+    const orders = await OrderService.getAllOrdersByUser(userId);
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({
         status: "ERR",
-        message: "Không có đơn hàng nào được tìm thấy cho người dùng này"
+        message: "Không có đơn hàng nào được tìm thấy cho người dùng này",
       });
     }
 
     res.status(200).json({
       status: "OK",
-      data: orders
+      data: orders,
     });
   } catch (error) {
-    console.error("Lỗi trong getAllOrdersByUserController:", error);
-    res.status(500).json({
+    console.error("Lỗi trong getAllOrdersByUser controller:", error);
+    res.status(error.status || 500).json({
       status: "ERR",
-      message: "Lỗi máy chủ nội bộ"
+      message: error.message || "Internal server error",
     });
   }
 };
 const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().populate("products.productId");
+    const orders = await OrderService.getAllOrders();
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({
         status: "ERR",
-        message: "Không có đơn hàng nào được tìm thấy cho người dùng này"
+        message: "Không có đơn hàng nào được tìm thấy"
       });
     }
 
@@ -69,18 +55,19 @@ const getAllOrders = async (req, res) => {
       data: orders
     });
   } catch (error) {
-    console.error("Lỗi trong getAllOrdersByUserController:", error);
-    res.status(500).json({
+    console.error("Lỗi trong getAllOrdersController:", error);
+    res.status(error.status || 500).json({
       status: "ERR",
-      message: "Lỗi máy chủ nội bộ"
+      message: error.message || "Lỗi máy chủ nội bộ"
     });
   }
 };
 
-const getOrderByIdController = async (req, res) => {
+const getOrderById = async (req, res) => {
   const { orderId } = req.params;
   try {
-    const order = await Order.findById(orderId).populate("products.productId");
+    // Gọi service để lấy đơn hàng theo orderId
+    const order = await OrderService.getOrderById(orderId);
 
     if (!order) {
       return res.status(404).json({
@@ -89,19 +76,21 @@ const getOrderByIdController = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    // Trả về đơn hàng
+    return res.status(200).json({
       status: "OK",
       data: order
     });
   } catch (error) {
+    // Nếu có lỗi, trả về lỗi server
     console.error("Error in getOrderById controller:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: "ERR",
       message: "Internal server error"
     });
   }
 };
-const cancelOrderController = async (req, res) => {
+const cancelOrder = async (req, res) => {
   const { orderId } = req.body;
 
   try {
@@ -120,7 +109,7 @@ const cancelOrderController = async (req, res) => {
   }
 };
 
-const shipOrderController = async (req, res) => {
+const shipOrder = async (req, res) => {
   const { orderId } = req.body;
   console.log(orderId);
   try {
@@ -139,7 +128,7 @@ const shipOrderController = async (req, res) => {
   }
 };
 
-const deliverOrderController = async (req, res) => {
+const deliverOrder = async (req, res) => {
   const { orderId } = req.body;
 
   try {
@@ -159,11 +148,11 @@ const deliverOrderController = async (req, res) => {
 };
 
 module.exports = {
-  getAllOrdersByUserController,
+  getAllOrdersByUser,
   getAllOrders,
-  createOrderController,
-  getOrderByIdController,
-  cancelOrderController,
-  shipOrderController,
-  deliverOrderController
+  createOrder,
+  getOrderById,
+  cancelOrder,
+  shipOrder,
+  deliverOrder
 };

@@ -92,7 +92,6 @@ const createOrder = async (
 
 const getAllOrdersByUser = async (userId) => {
   try {
-    // Tìm tất cả đơn hàng của người dùng
     const orders = await Order.find({ userId }).populate("products.productId");
     return orders;
   } catch (error) {
@@ -101,32 +100,39 @@ const getAllOrdersByUser = async (userId) => {
   }
 };
 
-const getOrderById = async (req, res) => {
-  const { orderId } = req.params; // Lấy orderId từ params
-
+const getAllOrders = async () => {
   try {
-    // Tìm đơn hàng theo orderId
-    const order = await Order.findById(orderId).populate("products.productId");
+    const orders = await Order.find().populate("products.productId");
+    return orders;
+  } catch (error) {
+    console.error("Lỗi trong getAllOrders service:", error);
+    throw error;
+  }
+};
 
-    if (!order) {
-      return res.status(404).json({
+
+const getOrderById = (orderId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Truy vấn đơn hàng theo orderId và populate các sản phẩm liên quan
+      const order = await Order.findById(orderId).populate("products.productId");
+
+      if (!order) {
+        return reject({
+          status: "ERR",
+          message: "Order not found"
+        });
+      }
+
+      resolve(order);
+    } catch (error) {
+      // Nếu có lỗi trong quá trình truy vấn, reject lỗi
+      reject({
         status: "ERR",
-        message: "Order not found"
+        message: "Error while retrieving order: " + error.message
       });
     }
-
-    // Trả về thông tin đơn hàng nếu tìm thấy
-    res.status(200).json({
-      status: "OK",
-      data: order
-    });
-  } catch (error) {
-    console.error("Error in getOrderById controller:", error);
-    res.status(500).json({
-      status: "ERR",
-      message: "Internal server error"
-    });
-  }
+  });
 };
 const cancelOrder = async (orderId) => {
   try {
@@ -218,6 +224,7 @@ const deliverOrder = async (orderId) => {
 module.exports = {
   createOrder,
   getAllOrdersByUser,
+  getAllOrders,
   getOrderById,
   cancelOrder,
   shipOrder,

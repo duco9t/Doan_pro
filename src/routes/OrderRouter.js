@@ -3,20 +3,20 @@ const router = express.Router();
 const orderController = require("../controllers/OrderController");
 const { authUserMiddleWare } = require("../middleware/authMiddleware");
 
-router.post("/create", orderController.createOrderController);
+router.post("/create", orderController.createOrder);
 
-router.get("/get/:orderId", orderController.getOrderByIdController);
+router.get("/get/:orderId", orderController.getOrderById);
 
-router.get("/getAll/:userId", orderController.getAllOrdersByUserController);
+router.get("/getAll/:userId", orderController.getAllOrdersByUser);
 
 router.get("/getAll", orderController.getAllOrders);
 
-router.put("/cancel", orderController.cancelOrderController);
+router.put("/cancel", orderController.cancelOrder);
 
 // Route để admin xác nhận đơn hàng (chuyển từ Pending sang Shipped)
-router.put("/ship", orderController.shipOrderController);
+router.put("/ship", orderController.shipOrder);
 
 // Route để người dùng xác nhận đã nhận hàng (chuyển từ Shipped sang Delivered)
-router.put("/deliver", orderController.deliverOrderController);
+router.put("/deliver", orderController.deliverOrder);
 
 module.exports = router;

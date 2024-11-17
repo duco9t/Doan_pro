@@ -123,17 +123,10 @@ const deleteManyProduct = (ids) => {
   });
 };
 
-const getAllProduct = async (sort, filter) => {
+const getAllProduct = async () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let query = {};
-      if (filter) {
-        const label = filter[0];
-        query[label] = { $regex: filter[1], $options: "i" };
-      }
-
-      const allProducts = await Product.find(query).sort(sort ? sort : {});
-
+      const allProducts = await Product.find();
       const formattedProducts = allProducts.map((product) => {
         return {
           ...product.toObject(),
@@ -141,7 +134,6 @@ const getAllProduct = async (sort, filter) => {
           bannerUrl: product.bannerUrl || null
         };
       });
-
       resolve({
         status: "OK",
         message: "success",
@@ -179,7 +171,6 @@ const getDetailsProduct = (id) => {
           message: "Product is not defined"
         });
       }
-
       resolve({
         status: "Oke",
         massage: "success",
