@@ -4,23 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const createProduct = async (newProduct) => {
-  const {
-    name,
-    quantityInStock,
-    prices,
-    imageUrl,
-    bannerUrl,
-    productsTypeName,
-    inches,
-    screenResolution,
-    company,
-    cpu,
-    ram,
-    memory,
-    gpu,
-    weight,
-    opsys
-  } = newProduct;
+  const {name,quantityInStock,prices,imageUrl,bannerUrl,productsTypeName,inches,
+    screenResolution,company,cpu,ram,memory,gpu,weight,opsys} = newProduct;
 
   try {
     const createdProduct = await Product.create({

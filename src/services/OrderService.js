@@ -114,19 +114,15 @@ const getAllOrders = async () => {
 const getOrderById = (orderId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Truy vấn đơn hàng theo orderId và populate các sản phẩm liên quan
       const order = await Order.findById(orderId).populate("products.productId");
-
       if (!order) {
         return reject({
           status: "ERR",
           message: "Order not found"
         });
       }
-
       resolve(order);
     } catch (error) {
-      // Nếu có lỗi trong quá trình truy vấn, reject lỗi
       reject({
         status: "ERR",
         message: "Error while retrieving order: " + error.message
