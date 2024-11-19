@@ -55,8 +55,8 @@ const createOrder = async (
     // Tính toán phí vận chuyển và VAT
     const VATorder = totalPrice * 0.1;
     const shippingFee = totalPrice > 50000000 ? 0 : 800000;
-    const orderTotal = totalPrice + shippingFee;
-
+    const orderTotal = totalPrice + shippingFee + VATorder;
+    console.log(orderTotal);
     // Tạo đơn hàng mới
     const newOrder = new Order({
       name,
@@ -72,7 +72,7 @@ const createOrder = async (
       orderTotal,
       status: "Pending"
     });
-
+    console.log(newOrder);
     // Lưu đơn hàng
     await newOrder.save();
 

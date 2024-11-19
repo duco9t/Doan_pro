@@ -66,9 +66,8 @@ const getAllOrders = async (req, res) => {
 const getOrderById = async (req, res) => {
   const { orderId } = req.params;
   try {
-    // Gọi service để lấy đơn hàng theo orderId
-    const order = await OrderService.getOrderById(orderId);
-
+    const order = await Order.findById(orderId).populate("products.productId");
+    console.log(order);
     if (!order) {
       return res.status(404).json({
         status: "ERR",

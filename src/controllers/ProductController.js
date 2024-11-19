@@ -82,7 +82,7 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const dataUpdate = { ...req.body };
-
+  console.log(dataUpdate);
   if (
     Object.keys(dataUpdate).length === 0 &&
     (!req.files || Object.keys(req.files).length === 0)
