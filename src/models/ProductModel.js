@@ -13,7 +13,7 @@ const reviewSchema = new mongoose.Schema({
   rating: { type: Number, required: true, min: 1, max: 5 },
   comment: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  replies: [replySchema] // Thêm trường replies để lưu danh sách trả lời
+  replies: [replySchema]
 });
 
 const productSchema = new mongoose.Schema(
@@ -33,9 +33,9 @@ const productSchema = new mongoose.Schema(
     gpu: { type: String, default: "" },
     weight: { type: String, default: "" },
     opsys: { type: String, default: "" },
-    // Thêm đánh giá và bình luận
-    reviews: [reviewSchema], // Danh sách đánh giá
-    averageRating: { type: Number, default: 0 }, // Đánh giá trung bình
+
+    reviews: [reviewSchema],
+    averageRating: { type: Number, default: 0 },
     ratingPercentages: {
       oneStar: { type: Number, default: 0 },
       twoStar: { type: Number, default: 0 },

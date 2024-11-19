@@ -122,19 +122,6 @@ const deleteManyUser = async (req, res) => {
     });
   }
 };
-// const logoutUser = async (req, res) => {
-//     try{
-//         res.clearCookie('checkUser')
-//         return res.status(200).json({
-//             status: 'OKE',
-//             message: 'Logout success'
-//         })
-//     }catch(e){
-//         return res.status(400).json({
-//             message: e
-//         })
-//     }
-// }
 
 const getAllUser = async (req, res) => {
   try {
