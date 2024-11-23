@@ -7,6 +7,7 @@ const GoogleRouter = require("./GoogleRouter");
 const ReviewRouter = require("./ReviewRouter");
 const PaymentRouter = require("./PaymentRouter");
 const CategoryRouter = require("./CategoryRouter");
+const AdminRouter = require("./AdminRoutes");
 
 
 const routes = (app) => {
@@ -19,6 +20,7 @@ const routes = (app) => {
   app.use("/api/review", ReviewRouter);
   app.use("/api/payments", PaymentRouter);
   app.use("/api/category", CategoryRouter);
+  app.use('/admin', AdminRouter);
 
 };
 module.exports = routes;
