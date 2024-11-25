@@ -4,7 +4,7 @@ const categoryController = require("../controllers/CategoryController");
 
 router.post(
   "/create",
-  categoryController.uploadProductImages,
+  categoryController.uploadCategoryImages,
   categoryController.createCategory
 );
 router.put("/update/:id", categoryController.updateCategory);

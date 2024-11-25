@@ -18,7 +18,7 @@ const bucket = admin.storage().bucket();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const uploadProductImages = upload.fields([{ name: "icon", maxCount: 2 }]);
+const uploadCategoryImages = upload.fields([{ name: "icon", maxCount: 2 }]);
 
 const createCategory = async (req, res) => {
   console.log({ ...req.body });
@@ -27,7 +27,7 @@ const createCategory = async (req, res) => {
     if (req.files) {
       if (req.files["icon"] && req.files["icon"].length > 0) {
         const imageFile = req.files["icon"][0];
-        const folderName = "TMDT/category";
+        const folderName = "DACN/category";
         const imageIconName = `${folderName}/${Date.now()}-${
           imageFile.originalname
         }`;
@@ -96,7 +96,7 @@ const deleteCategory = async (req, res) => {
 };
 
 module.exports = {
-  uploadProductImages,
+  uploadCategoryImages,
   createCategory,
   getAllCategories,
   getCategoryById,

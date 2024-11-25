@@ -73,5 +73,40 @@ const addReplyToReview = async (
   await product.save();
   return product;
 };
+const getAllComments = async () => {
+  // Tìm tất cả sản phẩm và chỉ lấy trường "reviews"
+  const products = await Product.find({}, "reviews name").populate(
+    "reviews.userId",
+    "username"
+  );
 
-module.exports = { addReview, getProductReviews, addReplyToReview };
+  // Trả về danh sách sản phẩm kèm bình luận
+  const comments = products.map((product) => ({
+    productId: product._id,
+    productName: product.name,
+    reviews: product.reviews
+  }));
+
+  return comments;
+};
+
+const countUserReviews = async () => {
+  // Tìm tất cả sản phẩm
+  const products = await Product.find({}, "reviews");
+
+  // Đếm số lượng đánh giá từ người dùng
+  let totalReviews = 0;
+
+  products.forEach((product) => {
+    totalReviews += product.reviews.length; // Chỉ đếm các đánh giá trong mảng reviews
+  });
+
+  return totalReviews;
+};
+module.exports = {
+  addReview,
+  getProductReviews,
+  addReplyToReview,
+  getAllComments,
+  countUserReviews
+};
