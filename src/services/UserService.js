@@ -11,8 +11,10 @@ const createUser = (newUser) => {
     const { name, email, password, phone } = newUser;
 
     try {
-      const checkUser = await User.findOne({ email });
-      if (checkUser) {
+      const existingUser = await User.findOne({ email });
+      const existingTempUser = await TempUser.findOne({ email });
+
+      if (existingUser || existingTempUser) {
         return resolve({
           status: "ERR",
           message: "The email is already in use"
@@ -53,8 +55,7 @@ const loginUser = (userLogin) => {
       const checkUser = await User.findOne({
         email: email
       });
-      const isAdmin = checkUser.isAdmin;
-      const id = checkUser._id;
+
       if (!checkUser) {
         resolve({
           status: "ERR",
@@ -62,7 +63,12 @@ const loginUser = (userLogin) => {
         });
         return;
       }
-      const comparePassword = bcrypt.compare(password, checkUser.password);
+
+      const comparePassword = await bcrypt.compare(
+        password,
+        checkUser.password
+      );
+
       if (!comparePassword) {
         resolve({
           status: "ERR",
@@ -70,6 +76,9 @@ const loginUser = (userLogin) => {
         });
         return;
       }
+
+      const isAdmin = checkUser.isAdmin;
+      const id = checkUser._id;
       const access_token = await genneralAccessToken({
         id: checkUser.id,
         isAdmin: checkUser.isAdmin
@@ -79,12 +88,14 @@ const loginUser = (userLogin) => {
         id: checkUser.id,
         isAdmin: checkUser.isAdmin
       });
+
       const name = checkUser.name;
       const phone = checkUser.phone;
+
       resolve({
         status: "Oke",
         massage: "Success",
-        dataUser: { id, name, email, password, isAdmin, phone },
+        dataUser: { id, name, email, isAdmin, phone },
         access_token,
         refresh_token
       });

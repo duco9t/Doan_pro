@@ -3,9 +3,20 @@ const Order = require("../models/OrderModel");
 
 const createOrder = async (req, res) => {
   try {
-    const { userId, cartId, shippingAddress, productIds, name, phone, email } = req.body;
-    const selectedProductIds = Array.isArray(productIds) ? productIds: [productIds];
-    const newOrder = await OrderService.createOrder(userId,cartId,shippingAddress,selectedProductIds,name,phone,email);
+    const { userId, cartId, shippingAddress, productIds, name, phone, email } =
+      req.body;
+    const selectedProductIds = Array.isArray(productIds)
+      ? productIds
+      : [productIds];
+    const newOrder = await OrderService.createOrder(
+      userId,
+      cartId,
+      shippingAddress,
+      selectedProductIds,
+      name,
+      phone,
+      email
+    );
     res.status(200).json({ status: "OK", data: newOrder });
   } catch (error) {
     console.error("Lỗi trong createOrder controller:", error);
@@ -23,19 +34,19 @@ const getAllOrdersByUser = async (req, res) => {
     if (!orders || orders.length === 0) {
       return res.status(404).json({
         status: "ERR",
-        message: "Không có đơn hàng nào được tìm thấy cho người dùng này",
+        message: "Không có đơn hàng nào được tìm thấy cho người dùng này"
       });
     }
 
     res.status(200).json({
       status: "OK",
-      data: orders,
+      data: orders
     });
   } catch (error) {
     console.error("Lỗi trong getAllOrdersByUser controller:", error);
     res.status(error.status || 500).json({
       status: "ERR",
-      message: error.message || "Internal server error",
+      message: error.message || "Internal server error"
     });
   }
 };

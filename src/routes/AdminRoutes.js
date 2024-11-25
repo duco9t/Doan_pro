@@ -1,9 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const { authAdminMiddleware } = require("../middleware/authMiddleware");
+const {
+  authAdminMiddleware,
+  authUserMiddleware
+} = require("../middleware/authMiddleware");
 
-router.get("/", authAdminMiddleware, (req, res) => {
+router.get("/admin", authAdminMiddleware, (req, res) => {
   res.send("Welcome to Admin Dashboard");
+});
+router.get("/user", authUserMiddleware, (req, res) => {
+  res.send("Welcome to User Dashboard");
 });
 
 module.exports = router;

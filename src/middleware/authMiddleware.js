@@ -69,8 +69,34 @@ const authAdminMiddleware = (req, res, next) => {
     return res.status(401).json({ message: "Invalid token!" });
   }
 };
+const authUserMiddleware = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized! Please log in." });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
+
+    if (!decoded.payload) {
+      return res
+        .status(403)
+        .json({ message: "Access denied! User login only." });
+    }
+
+    req.user = decoded.payload;
+    next();
+  } catch (error) {
+    console.error("Lỗi xác thực token:", error.message);
+    return res.status(401).json({ message: "Invalid token!" });
+  }
+};
 module.exports = {
   authMiddleWare,
   authUserMiddleWare,
-  authAdminMiddleware
+  authAdminMiddleware,
+  authUserMiddleware
 };
