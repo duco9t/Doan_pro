@@ -6,3 +6,4 @@ router.post("/send-otp", otpController.sendOTP);
 router.post("/verify-otp", otpController.verifyOTP);
 
 module.exports = router;
+ 
