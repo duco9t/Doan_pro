@@ -3,7 +3,8 @@ const JwtService = require("../services/JwtService");
 const OTPService = require("../services/OtpService");
 const User = require("../models/UserModel");
 const TempUser = require("../models/tempUserModel");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
+
 
 const createUser = async (req, res) => {
   try {
