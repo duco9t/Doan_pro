@@ -22,17 +22,17 @@ const orderSchema = new mongoose.Schema(
         quantity: { type: Number, required: true }
       }
     ],
-    shippingAddress: {
-      address: { type: String },
-      city: { type: String },
-      country: { type: String }
-    },
+    shippingAddress: { type: String },
     name: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
     totalPrice: { type: Number },
     shippingFee: { type: Number, default: 0 },
     VAT: { type: Number, default: 0 },
+    voucher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Voucher" // Tham chiếu đến model Voucher
+    },
     orderTotal: { type: Number },
     status: {
       type: String,

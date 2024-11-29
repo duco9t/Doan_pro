@@ -3,11 +3,32 @@ const Order = require("../models/OrderModel");
 
 const createOrder = async (req, res) => {
   try {
-    const { userId, cartId, shippingAddress, productIds, name, phone, email } =
-      req.body;
+    const {
+      userId,
+      cartId,
+      shippingAddress,
+      productIds,
+      name,
+      phone,
+      email,
+      voucherCode // thêm voucherCode từ yêu cầu
+    } = req.body;
+
+    console.log(
+      userId,
+      cartId,
+      shippingAddress,
+      productIds,
+      name,
+      phone,
+      email,
+      voucherCode
+    );
+
     const selectedProductIds = Array.isArray(productIds)
       ? productIds
       : [productIds];
+
     const newOrder = await OrderService.createOrder(
       userId,
       cartId,
@@ -15,8 +36,10 @@ const createOrder = async (req, res) => {
       selectedProductIds,
       name,
       phone,
-      email
+      email,
+      voucherCode // truyền voucherCode vào service
     );
+
     res.status(200).json({ status: "OK", data: newOrder });
   } catch (error) {
     console.error("Lỗi trong createOrder controller:", error);
