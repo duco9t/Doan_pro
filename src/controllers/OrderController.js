@@ -5,6 +5,15 @@ const createOrder = async (req, res) => {
   try {
     const { userId, cartId, shippingAddress, productIds, name, phone, email } =
       req.body;
+    console.log(
+      userId,
+      cartId,
+      shippingAddress,
+      productIds,
+      name,
+      phone,
+      email
+    );
     const selectedProductIds = Array.isArray(productIds)
       ? productIds
       : [productIds];

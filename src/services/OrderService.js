@@ -51,7 +51,6 @@ const createOrder = async (
     const VAT = totalPrice * 0.1;
     const shippingFee = totalPrice > 50000000 ? 0 : 800000;
     const orderTotal = totalPrice + shippingFee + VAT;
-
     const newOrder = new Order({
       name,
       phone,
