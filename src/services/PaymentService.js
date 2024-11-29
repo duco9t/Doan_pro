@@ -25,7 +25,7 @@ const createVNPayPaymentUrl = async (orderId, returnUrl) => {
       vnp_Version: '2.1.0',
       vnp_Command: 'pay',
       vnp_TmnCode: VNP_TMN_CODE,
-      vnp_Amount: amount * 1000, // Đơn vị: VND
+      vnp_Amount: amount * 100, // Đơn vị: VND
       vnp_CreateDate: vnp_CreateDate,
       vnp_CurrCode: 'VND',
       vnp_IpAddr: '127.0.0.1', // Thay bằng IP người dùng nếu cần
