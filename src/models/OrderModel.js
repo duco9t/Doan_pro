@@ -29,6 +29,10 @@ const orderSchema = new mongoose.Schema(
     totalPrice: { type: Number },
     shippingFee: { type: Number, default: 0 },
     VAT: { type: Number, default: 0 },
+    voucher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Voucher" // Tham chiếu đến model Voucher
+    },
     orderTotal: { type: Number },
     status: {
       type: String,

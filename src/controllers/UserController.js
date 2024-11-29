@@ -197,7 +197,6 @@ const changePassword = async (req, res) => {
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
   const userId = req.params.id;
 
-  console.log(userId, currentPassword, newPassword, confirmNewPassword);
   try {
     if (!userId || !currentPassword || !newPassword || !confirmNewPassword) {
       return res.status(400).json({

@@ -3,20 +3,21 @@ const Order = require("../models/OrderModel");
 
 const createOrder = async (req, res) => {
   try {
-    const { userId, cartId, shippingAddress, productIds, name, phone, email } =
-      req.body;
-    console.log(
+    const {
       userId,
       cartId,
       shippingAddress,
       productIds,
       name,
       phone,
-      email
-    );
+      email,
+      voucherCode
+    } = req.body;
+
     const selectedProductIds = Array.isArray(productIds)
       ? productIds
       : [productIds];
+
     const newOrder = await OrderService.createOrder(
       userId,
       cartId,
@@ -24,8 +25,10 @@ const createOrder = async (req, res) => {
       selectedProductIds,
       name,
       phone,
-      email
+      email,
+      voucherCode
     );
+
     res.status(200).json({ status: "OK", data: newOrder });
   } catch (error) {
     console.error("Lỗi trong createOrder controller:", error);
@@ -87,7 +90,7 @@ const getOrderById = async (req, res) => {
   const { orderId } = req.params;
   try {
     const order = await Order.findById(orderId).populate("products.productId");
-    console.log(order);
+
     if (!order) {
       return res.status(404).json({
         status: "ERR",
@@ -95,13 +98,11 @@ const getOrderById = async (req, res) => {
       });
     }
 
-    // Trả về đơn hàng
     return res.status(200).json({
       status: "OK",
       data: order
     });
   } catch (error) {
-    // Nếu có lỗi, trả về lỗi server
     console.error("Error in getOrderById controller:", error);
     return res.status(500).json({
       status: "ERR",
@@ -130,7 +131,7 @@ const cancelOrder = async (req, res) => {
 
 const shipOrder = async (req, res) => {
   const { orderId } = req.body;
-  console.log(orderId);
+
   try {
     const shippedOrder = await OrderService.shipOrder(orderId);
     res.status(200).json({

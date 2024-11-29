@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema(
     quantityInStock: { type: Number, default: 0 },
     prices: { type: Number, default: 0 }, // Giá gốc
     discount: { type: Number, default: 0 }, // % Giảm giá (0-100)
-    discountedPrice: { type: Number, default: 0 }, // Giá sau khi giảm
+    promotionPrice: { type: Number, default: 0 }, // Giá sau khi giảm
     imageUrl: { type: String, default: "" },
     bannerUrl: { type: String, default: "" },
     productsTypeName: { type: String, default: "" },
@@ -53,7 +53,7 @@ const productSchema = new mongoose.Schema(
 
 // **Middleware: Tính giá sau khi giảm trước khi lưu**
 productSchema.pre("save", function (next) {
-  this.discountedPrice = this.prices - (this.prices * this.discount) / 100;
+  this.promotionPrice = this.prices - (this.prices * this.discount) / 100;
   next();
 });
 
@@ -61,9 +61,13 @@ productSchema.pre("save", function (next) {
 productSchema.pre("findOneAndUpdate", function (next) {
   const update = this.getUpdate();
   if (update.prices || update.discount) {
-    const prices = update.prices !== undefined ? update.prices : this.getQuery().prices;
-    const discount = update.discount !== undefined ? update.discount : this.getQuery().discount;
-    update.discountedPrice = prices - (prices * discount) / 100;
+    const prices =
+      update.prices !== undefined ? update.prices : this.getQuery().prices;
+    const discount =
+      update.discount !== undefined
+        ? update.discount
+        : this.getQuery().discount;
+    update.promotionPrice = prices - (prices * discount) / 100;
   }
   next();
 });

@@ -21,7 +21,6 @@ const upload = multer({ storage: storage });
 const uploadCategoryImages = upload.fields([{ name: "icon", maxCount: 2 }]);
 
 const createCategory = async (req, res) => {
-  console.log({ ...req.body });
   try {
     const data = { ...req.body };
     if (req.files) {

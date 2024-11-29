@@ -1,8 +1,8 @@
 const Order = require("../models/OrderModel");
 const Cart = require("../models/CartModel");
 const Product = require("../models/ProductModel");
-{
-}
+const Voucher = require("../models/VoucherModel");
+
 const createOrder = async (
   userId,
   cartId,
@@ -10,7 +10,8 @@ const createOrder = async (
   productIds,
   name,
   phone,
-  email
+  email,
+  voucherCode
 ) => {
   try {
     const cart = await Cart.findById(cartId).populate("products.productId");
@@ -22,7 +23,8 @@ const createOrder = async (
       productIds.includes(String(item.productId._id))
     );
 
-    if (selectedProducts.length === 0) {
+    const validProducts = await Product.find({ _id: { $in: productIds } });
+    if (!validProducts || validProducts.length === 0) {
       throw { status: 400, message: "Không có sản phẩm hợp lệ để thanh toán" };
     }
 
@@ -38,7 +40,7 @@ const createOrder = async (
         return {
           productId: product._id,
           quantity: item.quantity,
-          price: product.prices
+          price: product.promotionPrice
         };
       })
     );
@@ -49,8 +51,30 @@ const createOrder = async (
     );
 
     const VAT = totalPrice * 0.1;
-    const shippingFee = totalPrice > 50000000 ? 0 : 800000;
-    const orderTotal = totalPrice + shippingFee + VAT;
+    const shippingFee = totalPrice >= 50000000 ? 0 : 800000;
+
+    let discount = 0;
+    if (voucherCode) {
+      const voucher = await Voucher.findOne({ code: voucherCode });
+      if (!voucher) {
+        throw { status: 404, message: "Mã giảm giá không hợp lệ" };
+      }
+
+      if (
+        voucher.discount &&
+        voucher.discount >= 1 &&
+        voucher.discount <= 100
+      ) {
+        discount = (totalPrice + shippingFee + VAT) * (voucher.discount / 100);
+      } else {
+        throw { status: 400, message: "Voucher giảm giá không hợp lệ" };
+      }
+    }
+
+    const discountedPrice = totalPrice + shippingFee + VAT - discount;
+
+    const orderTotal = Math.max(discountedPrice, 0);
+
     const newOrder = new Order({
       name,
       phone,
@@ -60,22 +84,27 @@ const createOrder = async (
       products,
       shippingAddress,
       totalPrice,
+      discount,
       VAT,
       shippingFee,
       orderTotal,
       status: "Pending"
     });
-    console.log(newOrder);
 
     await newOrder.save();
 
     cart.products = cart.products.filter(
       (item) => !productIds.includes(String(item.productId._id))
     );
-
     await cart.save();
 
-    return newOrder;
+    return {
+      status: "OK",
+      data: {
+        ...newOrder.toObject(),
+        discount
+      }
+    };
   } catch (error) {
     console.error("Lỗi trong createOrder service:", error);
     throw error;

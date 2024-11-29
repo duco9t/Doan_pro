@@ -24,14 +24,14 @@ const createProduct = async (newProduct) => {
   } = newProduct;
 
   try {
-    const discountedPrice = prices - (prices * (discount || 0)) / 100;
+    const promotionPrice = prices - (prices * (discount || 0)) / 100;
 
     const createdProduct = await Product.create({
       name: name || "",
       quantityInStock: quantityInStock || 0,
       prices: prices || 0,
       discount: discount || 0,
-      discountedPrice,
+      promotionPrice,
       imageUrl: imageUrl || "",
       bannerUrl: bannerUrl || "",
       productsTypeName: productsTypeName || "",
@@ -72,8 +72,9 @@ const updateProduct = (id, data) => {
 
       if (data.prices !== undefined || data.discount !== undefined) {
         const prices = data.prices || checkProduct.prices;
-        const discount = data.discount !== undefined ? data.discount : checkProduct.discount;
-        data.discountedPrice = prices - (prices * discount) / 100;
+        const discount =
+          data.discount !== undefined ? data.discount : checkProduct.discount;
+        data.promotionPrice = prices - (prices * discount) / 100;
       }
 
       const updatedProduct = await Product.findByIdAndUpdate(id, data, {
