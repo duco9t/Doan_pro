@@ -167,6 +167,25 @@ const deliverOrder = async (req, res) => {
   }
 };
 
+const getOrdersByStatusAndDateController = async (req, res) => {
+  try {
+    const { status, timeRange } = req.query; // Lấy thông tin từ query string
+    // Kiểm tra timeRange hợp lệ
+    if (!['daily', 'weekly', 'monthly'].includes(timeRange)) {
+      return res.status(400).json({ message: "Thời gian không hợp lệ" });
+    }
+
+    // Gọi service để lấy đơn hàng
+    const orders = await OrderService.getOrdersByStatusAndDate(status, timeRange);
+    
+    // Trả về kết quả
+    return res.status(200).json(orders);
+  } catch (error) {
+    console.error("Lỗi trong getOrdersByStatusAndDateController:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   getAllOrdersByUser,
   getAllOrders,
@@ -174,5 +193,6 @@ module.exports = {
   getOrderById,
   cancelOrder,
   shipOrder,
-  deliverOrder
+  deliverOrder,
+  getOrdersByStatusAndDateController
 };
