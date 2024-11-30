@@ -319,16 +319,18 @@ const getOrdersByStatusAndDate = async (status = "Delivered", timeRange = "daily
   try {
     const currentDate = new Date();
     
-    let startDate;
-    if (timeRange === "daily") {
-      startDate = new Date(currentDate.setHours(0, 0, 0, 0)); // Bắt đầu từ đầu ngày hôm nay
-    } else if (timeRange === "weekly") {
-      startDate = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay())); // Bắt đầu từ chủ nhật tuần này
-      startDate.setHours(0, 0, 0, 0);
-    } else if (timeRange === "monthly") {
-      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // Bắt đầu từ ngày đầu tháng
-      startDate.setHours(0, 0, 0, 0);
-    }
+    const startDate = (() => {
+      if (timeRange === "daily") {
+        return new Date(currentDate.setHours(0, 0, 0, 0)); // Bắt đầu từ đầu ngày hôm nay
+      } 
+      if (timeRange === "weekly") {
+        const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
+        return new Date(weekStart.setHours(0, 0, 0, 0)); // Bắt đầu từ chủ nhật tuần này
+      } 
+      if (timeRange === "monthly") {
+        return new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // Bắt đầu từ ngày đầu tháng
+      }
+    })();
 
     // Tìm đơn hàng với trạng thái và thời gian yêu cầu
     const orders = await Order.find({
@@ -336,12 +338,30 @@ const getOrdersByStatusAndDate = async (status = "Delivered", timeRange = "daily
       createdAt: { $gte: startDate } // Tìm đơn hàng có ngày tạo >= startDate
     }).populate("products.productId");
 
-    return orders;
+    // Tính tổng số đơn hàng
+    const totalOrders = orders.length;
+
+    // Tính tổng số sản phẩm
+    const totalProducts = orders.reduce((sum, order) => {
+      return sum + order.products.reduce((productSum, product) => productSum + product.quantity, 0);
+    }, 0);
+
+    // Tính tổng `orderTotal`
+    const totalAmount = orders.reduce((sum, order) => sum + order.orderTotal, 0);
+
+    // Trả về kết quả
+    return {
+      orders,
+      totalOrders, // Tổng số đơn hàng
+      totalProducts, // Tổng số sản phẩm
+      totalAmount // Tổng tiền
+    };
   } catch (error) {
     console.error("Lỗi trong getOrdersByStatusAndDate service:", error);
     throw error;
   }
 };
+
 
 module.exports = {
   createOrder,
