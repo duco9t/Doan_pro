@@ -10,7 +10,7 @@ const createVNPayPaymentUrl = async (orderId, returnUrl) => {
     throw new Error(`Đơn hàng với ID ${orderId} không tồn tại`);
   }
   const amount = order.orderTotal;
-  console.log("amout", amount);
+
   if (!VNP_HASH_SECRET) {
     throw new Error("VNP_HASH_SECRET không được định nghĩa");
   }
@@ -24,8 +24,6 @@ const createVNPayPaymentUrl = async (orderId, returnUrl) => {
   ).padStart(2, "0")}`;
 
   // In ra thông tin order và các giá trị cần kiểm tra
-  console.log("Thông tin đơn hàng:", order);
-  console.log("Giá trị đơn hàng (VND):", amount);
 
   // Tạo các tham số yêu cầu
   let params = {
@@ -44,7 +42,6 @@ const createVNPayPaymentUrl = async (orderId, returnUrl) => {
   };
 
   // In ra các tham số trước khi sắp xếp
-  console.log("Các tham số trước khi sắp xếp:", params);
 
   // Sắp xếp các tham số theo thứ tự alphabet
   const sortedParams = sortObject(params);

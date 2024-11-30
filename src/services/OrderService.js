@@ -18,7 +18,7 @@ const createOrder = async (
     if (!cart) {
       throw { status: 404, message: "Không tìm thấy giỏ hàng" };
     }
-    console.log("Cart:", cart); 
+
     const selectedProducts = cart.products.filter((item) =>
       productIds.includes(String(item.productId._id))
     );
@@ -37,7 +37,7 @@ const createOrder = async (
             message: `Không tìm thấy sản phẩm với ID ${item.productId}`
           };
         }
-        console.log(`Product: ${product._id}, Price: ${product.promotionPrice}`);
+
         return {
           productId: product._id,
           quantity: item.quantity,
@@ -45,8 +45,7 @@ const createOrder = async (
         };
       })
     );
-    
-    console.log("Products to Order:", products);
+
     const totalPrice = products.reduce(
       (total, product) => total + product.price * product.quantity,
       0
@@ -77,7 +76,7 @@ const createOrder = async (
 
     const orderTotalRaw = Math.max(discountedPrice, 0); // Đảm bảo giá trị không âm
     const orderTotal = parseFloat(orderTotalRaw.toFixed(2));
-    console.log("Order Total:", orderTotal);
+
     const newOrder = new Order({
       name,
       phone,
@@ -232,6 +231,8 @@ const deliverOrder = async (orderId) => {
 };
 // Cập nhật trạng thái thanh toán của đơn hàng
 const updatePaymentStatus = async (txnRef, isSuccess) => {
+  console.log(isSuccess);
+
   try {
     const order = await Order.findOne({ vnp_TxnRef: txnRef });
     if (!order) {
@@ -239,16 +240,26 @@ const updatePaymentStatus = async (txnRef, isSuccess) => {
     }
 
     // Cập nhật trạng thái thanh toán
-    order.paymentStatus = isSuccess ? "success" : "failed";
+    order.isPaid = isSuccess ? "success" : "failed";
+    if (isSuccess) {
+      order.isPaid = true;
+    }
     await order.save();
 
-    return { success: true, message: "Cập nhật trạng thái thanh toán thành công", returnUrl: "http://example.com/return" };
+    return {
+      success: true,
+      message: "Cập nhật trạng thái thanh toán thành công",
+      returnUrl: "http://localhost:3000/ket-qua-thanh-toan"
+    };
   } catch (e) {
     console.error("Lỗi khi cập nhật trạng thái thanh toán:", e.message);
-    return { success: false, message: "Cập nhật trạng thái thanh toán thất bại", error: e.message };
+    return {
+      success: false,
+      message: "Cập nhật trạng thái thanh toán thất bại",
+      error: e.message
+    };
   }
 };
-
 
 // Xử lý callback từ VNPay
 const handleVNPayCallback = async (req, res) => {
@@ -256,7 +267,6 @@ const handleVNPayCallback = async (req, res) => {
     const { vnp_ResponseCode, vnp_TxnRef } = req.query;
 
     if (!vnp_ResponseCode || !vnp_TxnRef) {
-      console.log("Thiếu thông tin từ VNPay callback:", req.query);
       return res.status(400).json({
         status: "ERR",
         message: "Thiếu thông tin từ VNPay callback"
@@ -265,14 +275,15 @@ const handleVNPayCallback = async (req, res) => {
 
     if (vnp_ResponseCode === "00") {
       // Thanh toán thành công
-      const updateResult = await OrderService.updatePaymentStatus(vnp_TxnRef, true);
-      console.log("Kết quả cập nhật thanh toán:", updateResult);
+      const updateResult = await OrderService.updatePaymentStatus(
+        vnp_TxnRef,
+        true
+      );
 
       if (updateResult.success) {
         return res.redirect(updateResult.returnUrl);
       }
 
-      console.log("Lỗi khi cập nhật trạng thái thanh toán:", updateResult.message);
       return res.status(400).json({
         status: "ERR",
         message: "Cập nhật trạng thái thanh toán thất bại"

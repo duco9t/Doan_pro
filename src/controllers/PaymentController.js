@@ -12,7 +12,10 @@ const createPayment = async (req, res) => {
       });
     }
 
-    const paymentURL = await PaymentService.createVNPayPaymentUrl(orderId, returnUrl);
+    const paymentURL = await PaymentService.createVNPayPaymentUrl(
+      orderId,
+      returnUrl
+    );
 
     return res.status(200).json({
       status: "OK",
@@ -41,7 +44,10 @@ const handleVNPayCallback = async (req, res) => {
     }
 
     if (vnp_ResponseCode === "00") {
-      const updateResult = await OrderService.updatePaymentStatus(vnp_TxnRef, true);
+      const updateResult = await OrderService.updatePaymentStatus(
+        vnp_TxnRef,
+        true
+      );
 
       if (updateResult.success) {
         return res.status(200).json({
@@ -85,7 +91,10 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
 
-    const updateResult = await OrderService.updatePaymentStatus(orderId, isSuccess);
+    const updateResult = await OrderService.updatePaymentStatus(
+      orderId,
+      isSuccess
+    );
 
     if (updateResult.success) {
       return res.status(200).json({
