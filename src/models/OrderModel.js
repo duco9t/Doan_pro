@@ -38,7 +38,11 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ["Pending", "Shipped", "Delivered", "Cancelled"],
       default: "Pending"
-    }
+    },
+    isPaid: {
+      type: Boolean,
+      default: false, // Trạng thái thanh toán, mặc định là chưa thanh toán
+    },
   },
   { timestamps: true }
 );

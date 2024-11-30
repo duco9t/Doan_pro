@@ -71,4 +71,6 @@ function sortObject(obj) {
   }, {});
 }
 
-module.exports = createVNPayPaymentUrl;
+module.exports = {
+  createVNPayPaymentUrl
+};

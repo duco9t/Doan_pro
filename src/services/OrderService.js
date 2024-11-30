@@ -18,7 +18,7 @@ const createOrder = async (
     if (!cart) {
       throw { status: 404, message: "Không tìm thấy giỏ hàng" };
     }
-
+    console.log("Cart:", cart); 
     const selectedProducts = cart.products.filter((item) =>
       productIds.includes(String(item.productId._id))
     );
@@ -37,6 +37,7 @@ const createOrder = async (
             message: `Không tìm thấy sản phẩm với ID ${item.productId}`
           };
         }
+        console.log(`Product: ${product._id}, Price: ${product.promotionPrice}`);
         return {
           productId: product._id,
           quantity: item.quantity,
@@ -44,7 +45,8 @@ const createOrder = async (
         };
       })
     );
-
+    
+    console.log("Products to Order:", products);
     const totalPrice = products.reduce(
       (total, product) => total + product.price * product.quantity,
       0
@@ -73,8 +75,9 @@ const createOrder = async (
 
     const discountedPrice = totalPrice + shippingFee + VAT - discount;
 
-    const orderTotal = Math.max(discountedPrice, 0);
-
+    const orderTotalRaw = Math.max(discountedPrice, 0); // Đảm bảo giá trị không âm
+    const orderTotal = parseFloat(orderTotalRaw.toFixed(2));
+    console.log("Order Total:", orderTotal);
     const newOrder = new Order({
       name,
       phone,
@@ -102,7 +105,8 @@ const createOrder = async (
       status: "OK",
       data: {
         ...newOrder.toObject(),
-        discount
+        discount,
+        totalPrice
       }
     };
   } catch (error) {
@@ -226,6 +230,86 @@ const deliverOrder = async (orderId) => {
     };
   }
 };
+// Cập nhật trạng thái thanh toán của đơn hàng
+const updatePaymentStatus = async (txnRef, isSuccess) => {
+  try {
+    const order = await Order.findOne({ vnp_TxnRef: txnRef });
+    if (!order) {
+      return { success: false, message: "Không tìm thấy đơn hàng" };
+    }
+
+    // Cập nhật trạng thái thanh toán
+    order.paymentStatus = isSuccess ? "success" : "failed";
+    await order.save();
+
+    return { success: true, message: "Cập nhật trạng thái thanh toán thành công", returnUrl: "http://example.com/return" };
+  } catch (e) {
+    console.error("Lỗi khi cập nhật trạng thái thanh toán:", e.message);
+    return { success: false, message: "Cập nhật trạng thái thanh toán thất bại", error: e.message };
+  }
+};
+
+
+// Xử lý callback từ VNPay
+const handleVNPayCallback = async (req, res) => {
+  try {
+    const { vnp_ResponseCode, vnp_TxnRef } = req.query;
+
+    if (!vnp_ResponseCode || !vnp_TxnRef) {
+      console.log("Thiếu thông tin từ VNPay callback:", req.query);
+      return res.status(400).json({
+        status: "ERR",
+        message: "Thiếu thông tin từ VNPay callback"
+      });
+    }
+
+    if (vnp_ResponseCode === "00") {
+      // Thanh toán thành công
+      const updateResult = await OrderService.updatePaymentStatus(vnp_TxnRef, true);
+      console.log("Kết quả cập nhật thanh toán:", updateResult);
+
+      if (updateResult.success) {
+        return res.redirect(updateResult.returnUrl);
+      }
+
+      console.log("Lỗi khi cập nhật trạng thái thanh toán:", updateResult.message);
+      return res.status(400).json({
+        status: "ERR",
+        message: "Cập nhật trạng thái thanh toán thất bại"
+      });
+    } else if (vnp_ResponseCode === "24" || vnp_TransactionStatus === "02") {
+      // Thanh toán bị hủy
+      const order = await Order.findOne({ vnp_TxnRef });
+
+      if (!order) {
+        return res.status(404).json({
+          status: "ERR",
+          message: "Không tìm thấy đơn hàng"
+        });
+      }
+
+      return res.status(200).json({
+        status: "ERR",
+        message: "Thanh toán bị hủy",
+        order: order
+      });
+    } else {
+      // Các mã lỗi khác từ VNPay
+      return res.status(400).json({
+        status: "ERR",
+        message: "Lỗi thanh toán từ VNPay",
+        errorCode: vnp_ResponseCode
+      });
+    }
+  } catch (e) {
+    console.error("Lỗi khi xử lý callback từ VNPay:", e.message);
+    return res.status(500).json({
+      status: "ERR",
+      message: "Lỗi hệ thống",
+      error: e.message
+    });
+  }
+};
 
 module.exports = {
   createOrder,
@@ -234,5 +318,7 @@ module.exports = {
   getOrderById,
   cancelOrder,
   shipOrder,
-  deliverOrder
+  deliverOrder,
+  handleVNPayCallback,
+  updatePaymentStatus
 };
