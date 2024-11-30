@@ -240,7 +240,8 @@ const updatePaymentStatus = async (txnRef, isSuccess) => {
     }
 
     // Cập nhật trạng thái thanh toán
-    order.isPaid = isSuccess ? "success" : "failed";
+    order.paymentStatus = isSuccess ? "success" : "failed";
+
     if (isSuccess) {
       order.isPaid = true;
     }
@@ -322,6 +323,43 @@ const handleVNPayCallback = async (req, res) => {
   }
 };
 
+const getOrdersByStatusAndDate = async (
+  status = "Delivered",
+  timeRange = "daily"
+) => {
+  try {
+    const currentDate = new Date();
+
+    let startDate;
+    if (timeRange === "daily") {
+      startDate = new Date(currentDate.setHours(0, 0, 0, 0)); // Bắt đầu từ đầu ngày hôm nay
+    } else if (timeRange === "weekly") {
+      startDate = new Date(
+        currentDate.setDate(currentDate.getDate() - currentDate.getDay())
+      ); // Bắt đầu từ chủ nhật tuần này
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeRange === "monthly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      ); // Bắt đầu từ ngày đầu tháng
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    // Tìm đơn hàng với trạng thái và thời gian yêu cầu
+    const orders = await Order.find({
+      status: status,
+      createdAt: { $gte: startDate } // Tìm đơn hàng có ngày tạo >= startDate
+    }).populate("products.productId");
+
+    return orders;
+  } catch (error) {
+    console.error("Lỗi trong getOrdersByStatusAndDate service:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   createOrder,
   getAllOrdersByUser,
@@ -331,5 +369,6 @@ module.exports = {
   shipOrder,
   deliverOrder,
   handleVNPayCallback,
-  updatePaymentStatus
+  updatePaymentStatus,
+  getOrdersByStatusAndDate
 };
