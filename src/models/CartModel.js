@@ -24,21 +24,27 @@ const cartSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Middleware to calculate total price before saving
+// Middleware để tính toán tổng giá trước khi lưu giỏ hàng
 cartSchema.pre("save", async function (next) {
   try {
-    // Retrieve product prices for each product in the cart
+    // Lấy thông tin giá trị của từng sản phẩm trong giỏ hàng
     const productsWithPrices = await Promise.all(
       this.products.map(async (item) => {
         const product = await Product.findById(item.productId);
+
+        // Tính giá sản phẩm sau khi áp dụng khuyến mãi hoặc giá gốc sau khi giảm giá
+        const price = product
+          ? product.promotionPrice ?? product.prices * (1 - (product.discount || 0) / 100)
+          : 0;
+
         return {
           quantity: item.quantity,
-          price: product ? product.prices : 0
+          price: price
         };
       })
     );
 
-    // Calculate total price based on the quantity and price of each product
+    // Tính tổng giá trị giỏ hàng
     this.totalPrice = productsWithPrices.reduce((total, product) => {
       return total + product.price * product.quantity;
     }, 0);

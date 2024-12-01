@@ -5,14 +5,34 @@ const fs = require("fs");
 const path = require("path");
 
 const createProduct = async (newProduct) => {
-  const {name,quantityInStock,prices,imageUrl,bannerUrl,productsTypeName,inches,
-    screenResolution,company,cpu,ram,memory,gpu,weight,opsys} = newProduct;
+  const {
+    name,
+    quantityInStock,
+    prices,
+    discount,
+    imageUrl,
+    bannerUrl,
+    productsTypeName,
+    inches,
+    screenResolution,
+    company,
+    cpu,
+    ram,
+    memory,
+    gpu,
+    weight,
+    opsys
+  } = newProduct;
 
   try {
+    const promotionPrice = prices - (prices * (discount || 0)) / 100;
+
     const createdProduct = await Product.create({
       name: name || "",
       quantityInStock: quantityInStock || 0,
       prices: prices || 0,
+      discount: discount || 0,
+      promotionPrice,
       imageUrl: imageUrl || "",
       bannerUrl: bannerUrl || "",
       productsTypeName: productsTypeName || "",
@@ -40,7 +60,6 @@ const createProduct = async (newProduct) => {
     };
   }
 };
-
 const updateProduct = (id, data) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -50,6 +69,13 @@ const updateProduct = (id, data) => {
           status: "ERR",
           message: "Product not found"
         });
+      }
+
+      if (data.prices !== undefined || data.discount !== undefined) {
+        const prices = data.prices || checkProduct.prices;
+        const discount =
+          data.discount !== undefined ? data.discount : checkProduct.discount;
+        data.promotionPrice = prices - (prices * discount) / 100;
       }
 
       const updatedProduct = await Product.findByIdAndUpdate(id, data, {

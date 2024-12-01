@@ -79,7 +79,6 @@ class OTPService {
       });
 
       const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent: " + info.response);
 
       return otpToken;
     } catch (error) {

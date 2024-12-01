@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// **Schema phản hồi (Reply)**
 const replySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   username: { type: String, required: true },
@@ -7,6 +8,7 @@ const replySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// **Schema đánh giá (Review)**
 const reviewSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   username: { type: String, required: true },
@@ -16,11 +18,14 @@ const reviewSchema = new mongoose.Schema({
   replies: [replySchema]
 });
 
+// **Schema sản phẩm (Product)**
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     quantityInStock: { type: Number, default: 0 },
-    prices: { type: Number, default: 0 },
+    prices: { type: Number, default: 0 }, // Giá gốc
+    discount: { type: Number, default: 0 }, // % Giảm giá (0-100)
+    promotionPrice: { type: Number, default: 0 }, // Giá sau khi giảm
     imageUrl: { type: String, default: "" },
     bannerUrl: { type: String, default: "" },
     productsTypeName: { type: String, default: "" },
@@ -33,7 +38,6 @@ const productSchema = new mongoose.Schema(
     gpu: { type: String, default: "" },
     weight: { type: String, default: "" },
     opsys: { type: String, default: "" },
-
     reviews: [reviewSchema],
     averageRating: { type: Number, default: 0 },
     ratingPercentages: {
@@ -46,6 +50,27 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// **Middleware: Tính giá sau khi giảm trước khi lưu**
+productSchema.pre("save", function (next) {
+  this.promotionPrice = this.prices - (this.prices * this.discount) / 100;
+  next();
+});
+
+// **Middleware: Tính giá sau khi giảm khi cập nhật**
+productSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  if (update.prices || update.discount) {
+    const prices =
+      update.prices !== undefined ? update.prices : this.getQuery().prices;
+    const discount =
+      update.discount !== undefined
+        ? update.discount
+        : this.getQuery().discount;
+    update.promotionPrice = prices - (prices * discount) / 100;
+  }
+  next();
+});
 
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

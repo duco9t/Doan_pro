@@ -3,11 +3,21 @@ const Order = require("../models/OrderModel");
 
 const createOrder = async (req, res) => {
   try {
-    const { userId, cartId, shippingAddress, productIds, name, phone, email } =
-      req.body;
+    const {
+      userId,
+      cartId,
+      shippingAddress,
+      productIds,
+      name,
+      phone,
+      email,
+      voucherCode
+    } = req.body;
+
     const selectedProductIds = Array.isArray(productIds)
       ? productIds
       : [productIds];
+
     const newOrder = await OrderService.createOrder(
       userId,
       cartId,
@@ -15,8 +25,10 @@ const createOrder = async (req, res) => {
       selectedProductIds,
       name,
       phone,
-      email
+      email,
+      voucherCode
     );
+
     res.status(200).json({ status: "OK", data: newOrder });
   } catch (error) {
     console.error("Lỗi trong createOrder controller:", error);
@@ -78,7 +90,7 @@ const getOrderById = async (req, res) => {
   const { orderId } = req.params;
   try {
     const order = await Order.findById(orderId).populate("products.productId");
-    console.log(order);
+
     if (!order) {
       return res.status(404).json({
         status: "ERR",
@@ -86,13 +98,11 @@ const getOrderById = async (req, res) => {
       });
     }
 
-    // Trả về đơn hàng
     return res.status(200).json({
       status: "OK",
       data: order
     });
   } catch (error) {
-    // Nếu có lỗi, trả về lỗi server
     console.error("Error in getOrderById controller:", error);
     return res.status(500).json({
       status: "ERR",
@@ -121,7 +131,7 @@ const cancelOrder = async (req, res) => {
 
 const shipOrder = async (req, res) => {
   const { orderId } = req.body;
-  console.log(orderId);
+
   try {
     const shippedOrder = await OrderService.shipOrder(orderId);
     res.status(200).json({
@@ -156,7 +166,45 @@ const deliverOrder = async (req, res) => {
     });
   }
 };
+const getOrdersByStatusAndDateController = async (req, res) => {
+  try {
+    const { status, date, timePeriod } = req.body; // Lấy thông tin từ body (POST)
+    console.log({ status, date, timePeriod });
 
+    // Kiểm tra timePeriod hợp lệ
+    if (!["day", "week", "month"].includes(timePeriod)) {
+      return res.status(400).json({
+        message:
+          "Thời gian không hợp lệ. Vui lòng chọn 'day', 'week', hoặc 'month'."
+      });
+    }
+
+    // Gọi service để lấy đơn hàng
+    const orders = await OrderService.getOrdersByTimePeriod(
+      status,
+      timePeriod,
+      date
+    );
+
+    // Trả về kết quả
+    return res.status(200).json(orders);
+  } catch (error) {
+    console.error("Lỗi trong getOrdersByStatusAndDateController:", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+const getRevenue = async (req, res) => {
+  try {
+    const revenueData = await OrderService.getTotalRevenue();
+    return res.status(200).json(revenueData);
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERR",
+      message: "Không thể lấy tổng doanh thu",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   getAllOrdersByUser,
   getAllOrders,
@@ -164,5 +212,7 @@ module.exports = {
   getOrderById,
   cancelOrder,
   shipOrder,
-  deliverOrder
+  deliverOrder,
+  getRevenue,
+  getOrdersByStatusAndDateController
 };
