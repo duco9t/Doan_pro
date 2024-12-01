@@ -19,6 +19,6 @@ router.put("/ship", orderController.shipOrder);
 // Route để người dùng xác nhận đã nhận hàng (chuyển từ Shipped sang Delivered)
 router.put("/deliver", orderController.deliverOrder);
 
-router.get("/getstatus", orderController.getOrdersByStatusAndDateController);
-
+router.post("/getstatus", orderController.getOrdersByStatusAndDateController);
+router.get("/total-revenue", orderController.getRevenue);
 module.exports = router;

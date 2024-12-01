@@ -1,5 +1,12 @@
 const mongoose = require("mongoose");
 
+// Hàm chuyển đổi giờ UTC sang giờ Việt Nam
+const toVietnamTime = (date) => {
+  const vietnamOffset = 7; // GMT+7
+  const localDate = new Date(date.getTime() + vietnamOffset * 60 * 60 * 1000);
+  return localDate;
+};
+
 const orderSchema = new mongoose.Schema(
   {
     userId: {
@@ -31,7 +38,7 @@ const orderSchema = new mongoose.Schema(
     VAT: { type: Number, default: 0 },
     voucher: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Voucher" // Tham chiếu đến model Voucher
+      ref: "Voucher"
     },
     orderTotal: { type: Number },
     status: {
@@ -41,11 +48,26 @@ const orderSchema = new mongoose.Schema(
     },
     isPaid: {
       type: Boolean,
-      default: false, // Trạng thái thanh toán, mặc định là chưa thanh toán
-    },
+      default: false
+    }
   },
   { timestamps: true }
 );
+
+// Middleware để chuyển đổi thời gian sang GMT+7
+orderSchema.pre("save", function (next) {
+  if (this.isNew) {
+    this.createdAt = toVietnamTime(new Date());
+  }
+  this.updatedAt = toVietnamTime(new Date());
+  next();
+});
+
+// Middleware cho `findOneAndUpdate`
+orderSchema.pre("findOneAndUpdate", function (next) {
+  this._update.updatedAt = toVietnamTime(new Date());
+  next();
+});
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

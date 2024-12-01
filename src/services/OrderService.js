@@ -74,7 +74,7 @@ const createOrder = async (
 
     const discountedPrice = totalPrice + shippingFee + VAT - discount;
 
-    const orderTotalRaw = Math.max(discountedPrice, 0); // Đảm bảo giá trị không âm
+    const orderTotalRaw = Math.max(discountedPrice, 0);
     const orderTotal = parseFloat(orderTotalRaw.toFixed(2));
 
     const newOrder = new Order({
@@ -229,7 +229,7 @@ const deliverOrder = async (orderId) => {
     };
   }
 };
-// Cập nhật trạng thái thanh toán của đơn hàng
+
 const updatePaymentStatus = async (txnRef, isSuccess) => {
   console.log(isSuccess);
 
@@ -239,7 +239,6 @@ const updatePaymentStatus = async (txnRef, isSuccess) => {
       return { success: false, message: "Không tìm thấy đơn hàng" };
     }
 
-    // Cập nhật trạng thái thanh toán
     order.paymentStatus = isSuccess ? "success" : "failed";
 
     if (isSuccess) {
@@ -262,7 +261,6 @@ const updatePaymentStatus = async (txnRef, isSuccess) => {
   }
 };
 
-// Xử lý callback từ VNPay
 const handleVNPayCallback = async (req, res) => {
   try {
     const { vnp_ResponseCode, vnp_TxnRef } = req.query;
@@ -275,7 +273,6 @@ const handleVNPayCallback = async (req, res) => {
     }
 
     if (vnp_ResponseCode === "00") {
-      // Thanh toán thành công
       const updateResult = await OrderService.updatePaymentStatus(
         vnp_TxnRef,
         true
@@ -290,7 +287,6 @@ const handleVNPayCallback = async (req, res) => {
         message: "Cập nhật trạng thái thanh toán thất bại"
       });
     } else if (vnp_ResponseCode === "24" || vnp_TransactionStatus === "02") {
-      // Thanh toán bị hủy
       const order = await Order.findOne({ vnp_TxnRef });
 
       if (!order) {
@@ -306,7 +302,6 @@ const handleVNPayCallback = async (req, res) => {
         order: order
       });
     } else {
-      // Các mã lỗi khác từ VNPay
       return res.status(400).json({
         status: "ERR",
         message: "Lỗi thanh toán từ VNPay",
@@ -323,43 +318,133 @@ const handleVNPayCallback = async (req, res) => {
   }
 };
 
-const getOrdersByStatusAndDate = async (
-  status = "Delivered",
-  timeRange = "daily"
-) => {
-  try {
-    const currentDate = new Date();
+const getOrdersByTimePeriod = async (status, timePeriod, date) => {
+  const toVietnamTime = (date) => {
+    const vietnamOffset = 7;
+    return new Date(date.getTime() + vietnamOffset * 60 * 60 * 1000);
+  };
 
-    let startDate;
-    if (timeRange === "daily") {
-      startDate = new Date(currentDate.setHours(0, 0, 0, 0)); // Bắt đầu từ đầu ngày hôm nay
-    } else if (timeRange === "weekly") {
-      startDate = new Date(
-        currentDate.setDate(currentDate.getDate() - currentDate.getDay())
-      ); // Bắt đầu từ chủ nhật tuần này
-      startDate.setHours(0, 0, 0, 0);
-    } else if (timeRange === "monthly") {
-      startDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth(),
+  try {
+    let startUtcDate, endUtcDate;
+    const selectedDate = new Date(date);
+
+    if (timePeriod === "day") {
+      startUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        0,
+        0,
+        0
+      );
+      endUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        23,
+        59,
+        59
+      );
+    } else if (timePeriod === "week") {
+      const dayOfWeek = selectedDate.getDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const diffToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+
+      startUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() + diffToMonday,
+        0,
+        0,
+        0
+      );
+
+      endUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate() + diffToSunday,
+        23,
+        59,
+        59
+      );
+    } else if (timePeriod === "month") {
+      startUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
         1
-      ); // Bắt đầu từ ngày đầu tháng
-      startDate.setHours(0, 0, 0, 0);
+      );
+      endUtcDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth() + 1,
+        0,
+        23,
+        59,
+        59
+      );
+    } else {
+      throw new Error("Invalid time period. Use 'day', 'week', or 'month'.");
     }
 
-    // Tìm đơn hàng với trạng thái và thời gian yêu cầu
     const orders = await Order.find({
-      status: status,
-      createdAt: { $gte: startDate } // Tìm đơn hàng có ngày tạo >= startDate
+      status,
+      createdAt: { $gte: startUtcDate, $lte: endUtcDate }
     }).populate("products.productId");
 
-    return orders;
+    const ordersWithVietnamTime = orders.map((order) => ({
+      ...order.toObject(),
+      createdAt: toVietnamTime(order.createdAt),
+      updatedAt: toVietnamTime(order.updatedAt)
+    }));
+
+    const totalProducts = orders.reduce((sum, order) => {
+      return (
+        sum +
+        order.products.reduce((productSum, product) => {
+          return productSum + product.quantity;
+        }, 0)
+      );
+    }, 0);
+    const totalOrders = orders.length;
+    const totalAmount = orders.reduce(
+      (sum, order) => sum + order.orderTotal,
+      0
+    );
+
+    return {
+      orders: ordersWithVietnamTime,
+      totalProducts,
+      totalAmount,
+      totalOrders,
+      startDate: toVietnamTime(startUtcDate),
+      endDate: toVietnamTime(endUtcDate)
+    };
   } catch (error) {
-    console.error("Lỗi trong getOrdersByStatusAndDate service:", error);
+    console.error("Error in getOrdersByTimePeriod:", error);
     throw error;
   }
 };
+const getTotalRevenue = async () => {
+  try {
+    const deliveredOrders = await Order.find({ status: "Delivered" });
 
+    const totalRevenue = deliveredOrders.reduce(
+      (sum, order) => sum + order.orderTotal,
+      0
+    );
+
+    return {
+      status: "OK",
+      totalRevenue
+    };
+  } catch (error) {
+    console.error("Error in getTotalRevenue:", error);
+    throw {
+      status: "ERR",
+      message: "Không thể tính tổng doanh thu",
+      error: error.message
+    };
+  }
+};
 module.exports = {
   createOrder,
   getAllOrdersByUser,
@@ -370,5 +455,6 @@ module.exports = {
   deliverOrder,
   handleVNPayCallback,
   updatePaymentStatus,
-  getOrdersByStatusAndDate
+  getOrdersByTimePeriod,
+  getTotalRevenue
 };

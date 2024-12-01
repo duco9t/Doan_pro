@@ -166,18 +166,26 @@ const deliverOrder = async (req, res) => {
     });
   }
 };
-
 const getOrdersByStatusAndDateController = async (req, res) => {
   try {
-    const { status, timeRange } = req.query; // Lấy thông tin từ query string
-    // Kiểm tra timeRange hợp lệ
-    if (!['daily', 'weekly', 'monthly'].includes(timeRange)) {
-      return res.status(400).json({ message: "Thời gian không hợp lệ" });
+    const { status, date, timePeriod } = req.body; // Lấy thông tin từ body (POST)
+    console.log({ status, date, timePeriod });
+
+    // Kiểm tra timePeriod hợp lệ
+    if (!["day", "week", "month"].includes(timePeriod)) {
+      return res.status(400).json({
+        message:
+          "Thời gian không hợp lệ. Vui lòng chọn 'day', 'week', hoặc 'month'."
+      });
     }
 
     // Gọi service để lấy đơn hàng
-    const orders = await OrderService.getOrdersByStatusAndDate(status, timeRange);
-    
+    const orders = await OrderService.getOrdersByTimePeriod(
+      status,
+      timePeriod,
+      date
+    );
+
     // Trả về kết quả
     return res.status(200).json(orders);
   } catch (error) {
@@ -185,7 +193,18 @@ const getOrdersByStatusAndDateController = async (req, res) => {
     return res.status(500).json({ message: "Lỗi server" });
   }
 };
-
+const getRevenue = async (req, res) => {
+  try {
+    const revenueData = await OrderService.getTotalRevenue();
+    return res.status(200).json(revenueData);
+  } catch (error) {
+    return res.status(500).json({
+      status: "ERR",
+      message: "Không thể lấy tổng doanh thu",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   getAllOrdersByUser,
   getAllOrders,
@@ -194,5 +213,6 @@ module.exports = {
   cancelOrder,
   shipOrder,
   deliverOrder,
+  getRevenue,
   getOrdersByStatusAndDateController
 };
