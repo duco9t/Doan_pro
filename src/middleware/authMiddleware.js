@@ -49,7 +49,7 @@ const authUserMiddleWare = (req, res, next) => {
 const authAdminMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
+    console.log(authHeader);
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Unauthorized! Please log in." });
     }
@@ -57,7 +57,6 @@ const authAdminMiddleware = (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
-
     if (!decoded.payload || !decoded.payload.isAdmin) {
       return res.status(403).json({ message: "Access denied! Admins only." });
     }
@@ -65,14 +64,19 @@ const authAdminMiddleware = (req, res, next) => {
     req.user = decoded.payload;
     next();
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json({ message: "Token expired! Please log in again." });
+    }
     console.error("Lỗi xác thực token:", error.message);
     return res.status(401).json({ message: "Invalid token!" });
   }
 };
+
 const authUserMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Unauthorized! Please log in." });
     }
@@ -80,7 +84,7 @@ const authUserMiddleware = (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);
-
+    console.log(decoded);
     if (!decoded.payload) {
       return res
         .status(403)
