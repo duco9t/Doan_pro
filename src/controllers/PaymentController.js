@@ -83,7 +83,7 @@ const handleVNPayCallback = async (req, res) => {
 const updatePaymentStatus = async (req, res) => {
   try {
     const { orderId, isSuccess } = req.body;
-
+    console.log({ orderId, isSuccess });
     if (!orderId || typeof isSuccess !== "boolean") {
       return res.status(400).json({
         status: "ERR",

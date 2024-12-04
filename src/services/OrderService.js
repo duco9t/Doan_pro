@@ -217,7 +217,7 @@ const deliverOrder = async (orderId) => {
     }
 
     order.status = "Delivered";
-
+    order.isPaid = true;
     await order.save();
 
     return order;
@@ -230,16 +230,14 @@ const deliverOrder = async (orderId) => {
   }
 };
 
-const updatePaymentStatus = async (txnRef, isSuccess) => {
+const updatePaymentStatus = async (orderId, isSuccess) => {
   console.log(isSuccess);
 
   try {
-    const order = await Order.findOne({ vnp_TxnRef: txnRef });
+    const order = await Order.findById(orderId);
     if (!order) {
       return { success: false, message: "Không tìm thấy đơn hàng" };
     }
-
-    order.paymentStatus = isSuccess ? "success" : "failed";
 
     if (isSuccess) {
       order.isPaid = true;
