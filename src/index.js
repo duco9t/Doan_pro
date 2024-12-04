@@ -6,20 +6,16 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const passport = require("passport");
 const path = require("path");
-const session = require("express-session"); // Import express-session
-// const fileUpload = require("express-fileupload");
+const session = require("express-session");
+const configLoginWithGoogle = require("./controllers/GoogleController");
 
 dotenv.config();
-
-const configLoginWithGoogle = require("./controllers/GoogleController");
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({ origin: "*" }));
-
-// app.use(fileUpload());
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -27,10 +23,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Session configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your_secret_key", // Thay bằng khóa bí mật
+    secret: process.env.SESSION_SECRET || "your_secret_key",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Đặt secure: true khi dùng HTTPS
+    cookie: { secure: false }
   })
 );
 
@@ -38,21 +34,24 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Google OAuth Config
+configLoginWithGoogle();
+
 // Routes
 routes(app);
 
 // Database Connection
 mongoose
-  .connect(process.env.MONGO_DB)
+  .connect(process.env.MONGO_DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
   .then(() => {
     console.log("Connect DB success");
   })
   .catch((err) => {
     console.error("Database connection error:", err);
   });
-
-// Google OAuth Config
-configLoginWithGoogle();
 
 // Server
 app.listen(port, () => {

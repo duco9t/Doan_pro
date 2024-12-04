@@ -35,7 +35,7 @@ const createVNPayPaymentUrl = async (orderId, returnUrl) => {
     vnp_CurrCode: "VND",
     vnp_IpAddr: "127.0.0.1", // Thay bằng IP người dùng nếu cần
     vnp_Locale: "vn",
-    vnp_OrderInfo: `Thanh toán đơn hàng ${orderId}`,
+    vnp_OrderInfo: orderId,
     vnp_OrderType: "billpayment",
     vnp_ReturnUrl: returnUrl || VNP_RETURN_URL,
     vnp_TxnRef: orderId
