@@ -11,11 +11,11 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login"
+    failureRedirect: "https://dacn-production.up.railway.app/login"
   }),
   (req, res) => {
     res.redirect(
-      `http://localhost:3000?user=${encodeURIComponent(
+      `https://dacn-production.up.railway.app?user=${encodeURIComponent(
         JSON.stringify(req.user)
       )}`
     );
@@ -25,7 +25,7 @@ router.get(
 router.get("/auth/logout", (req, res) => {
   req.logout((err) => {
     if (err) return res.status(500).send("Error logging out");
-    res.redirect("http://localhost:3000");
+    res.redirect("https://dacn-production.up.railway.app");
   });
 });
 
