@@ -217,7 +217,7 @@ const deliverOrder = async (orderId) => {
     }
 
     order.status = "Delivered";
-
+    order.isPaid = true;
     await order.save();
 
     return order;
@@ -230,16 +230,14 @@ const deliverOrder = async (orderId) => {
   }
 };
 
-const updatePaymentStatus = async (txnRef, isSuccess) => {
+const updatePaymentStatus = async (orderId, isSuccess) => {
   console.log(isSuccess);
 
   try {
-    const order = await Order.findOne({ vnp_TxnRef: txnRef });
+    const order = await Order.findById(orderId);
     if (!order) {
       return { success: false, message: "Không tìm thấy đơn hàng" };
     }
-
-    order.paymentStatus = isSuccess ? "success" : "failed";
 
     if (isSuccess) {
       order.isPaid = true;
@@ -319,11 +317,6 @@ const handleVNPayCallback = async (req, res) => {
 };
 
 const getOrdersByTimePeriod = async (status, timePeriod, date) => {
-  const toVietnamTime = (date) => {
-    const vietnamOffset = 7;
-    return new Date(date.getTime() + vietnamOffset * 60 * 60 * 1000);
-  };
-
   try {
     let startUtcDate, endUtcDate;
     const selectedDate = new Date(date);
@@ -392,8 +385,8 @@ const getOrdersByTimePeriod = async (status, timePeriod, date) => {
 
     const ordersWithVietnamTime = orders.map((order) => ({
       ...order.toObject(),
-      createdAt: toVietnamTime(order.createdAt),
-      updatedAt: toVietnamTime(order.updatedAt)
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
     }));
 
     const totalProducts = orders.reduce((sum, order) => {
@@ -415,8 +408,8 @@ const getOrdersByTimePeriod = async (status, timePeriod, date) => {
       totalProducts,
       totalAmount,
       totalOrders,
-      startDate: toVietnamTime(startUtcDate),
-      endDate: toVietnamTime(endUtcDate)
+      startDate: startUtcDate,
+      endDate: endUtcDate
     };
   } catch (error) {
     console.error("Error in getOrdersByTimePeriod:", error);
