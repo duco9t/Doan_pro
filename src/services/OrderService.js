@@ -249,7 +249,7 @@ const updatePaymentStatus = async (txnRef, isSuccess) => {
     return {
       success: true,
       message: "Cập nhật trạng thái thanh toán thành công",
-      returnUrl: "http://localhost:3000/ket-qua-thanh-toan"
+      returnUrl: "https://dacn-production.up.railway.app/ket-qua-thanh-toan"
     };
   } catch (e) {
     console.error("Lỗi khi cập nhật trạng thái thanh toán:", e.message);
