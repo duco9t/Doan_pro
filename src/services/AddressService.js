@@ -37,4 +37,25 @@ const getAddressesByUserId = async (userId) => {
   return userAddress.addresses;
 };
 
-module.exports = { addAddress, getAddressesByUserId };
+const deleteAddress = async (userId, addressId) => {
+  const userAddress = await Address.findOne({ userId });
+  if (!userAddress) {
+    throw new Error("User not found or no addresses available");
+  }
+
+  // Lọc ra các địa chỉ không khớp với addressId
+  const updatedAddresses = userAddress.addresses.filter(
+    (address) => address._id.toString() !== addressId
+  );
+
+  if (updatedAddresses.length === userAddress.addresses.length) {
+    throw new Error("Address not found");
+  }
+
+  userAddress.addresses = updatedAddresses;
+  await userAddress.save();
+
+  return { message: "Address deleted successfully" };
+};
+
+module.exports = { addAddress, getAddressesByUserId, deleteAddress };
