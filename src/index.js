@@ -12,10 +12,9 @@ const configLoginWithGoogle = require("./controllers/GoogleController");
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({ origin: "https://dacn-production.up.railway.app", credentials: true }));
+app.use(cors({ origin: "https://doan-pro.vercel.app", credentials: true }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -53,7 +52,5 @@ mongoose
     console.error("Database connection error:", err);
   });
 
-// Server
-app.listen(port, () => {
-  console.log("Server is running on port", port);
-});
+// 🚨 Không dùng app.listen(), mà export Express app
+module.exports = app;
