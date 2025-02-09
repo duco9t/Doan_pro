@@ -15,7 +15,17 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: "https://doan-pro.vercel.app", credentials: true }));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://dacn-rose.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
