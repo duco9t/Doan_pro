@@ -8,6 +8,7 @@ const passport = require("passport");
 const path = require("path");
 const session = require("express-session");
 const configLoginWithGoogle = require("./controllers/GoogleController");
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 dotenv.config();
 
@@ -20,14 +21,24 @@ app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Session configuration
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your_secret_key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
-  })
-);
+// Kết nối MongoDB
+const store = new MongoDBStore({
+  uri: process.env.MONGO_DB,  // Đọc từ .env
+  collection: "sessions",
+});
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || "your_secret_key",
+  resave: false,
+  saveUninitialized: false,
+  store: store,
+  cookie: { 
+      secure: true,  // Bật nếu dùng HTTPS
+      httpOnly: true,
+      sameSite: "none"  // Cho phép cross-site cookies
+  }
+}));
+
 
 // Passport middleware
 app.use(passport.initialize());
