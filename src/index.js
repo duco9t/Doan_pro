@@ -41,16 +41,15 @@ routes(app);
 
 // Database Connection
 mongoose
-  .connect(process.env.MONGO_DB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+  .connect(process.env.MONGO_DB)
   .then(() => {
     console.log("Connect DB success");
   })
   .catch((err) => {
     console.error("Database connection error:", err);
   });
+
+  console.log("SECRET_OTP_TOKEN:", process.env.SECRET_OTP_TOKEN);
 
 // 🚨 Không dùng app.listen(), mà export Express app
 module.exports = app;
