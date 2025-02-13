@@ -15,7 +15,11 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({ origin: "https://dacn-production.up.railway.app", credentials: true }));
+app.use(cors({
+  origin: ["https://hdtech.id.vn", "https://dacn-production.up.railway.app"], // Cho phép nhiều domain
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
+}));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
