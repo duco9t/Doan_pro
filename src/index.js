@@ -16,9 +16,10 @@ const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ["https://hdtech.id.vn", "https://dacn-production.up.railway.app"], // Cho phép nhiều domain
+  origin: "*", // Cho phép tất cả các domain
   methods: "GET,POST,PUT,DELETE",
-  credentials: true
+  credentials: true, // Nếu API có sử dụng cookie hoặc authentication
+  allowedHeaders: "Content-Type, Authorization"
 }));
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
